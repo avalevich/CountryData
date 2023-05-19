@@ -81,6 +81,7 @@ final class ConfigurationViewController: UIViewController {
     private let continents: [String] = Constants.countriesToCode.keys.map{ $0 }
     private var stackCenterYConstraint: NSLayoutConstraint?
     private var selectedContinentIndex = Constants.countriesToCode.keys.count / 2
+    private var countriesToShow: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -102,6 +103,7 @@ final class ConfigurationViewController: UIViewController {
         pickerView.selectRow(continents.count / 2, inComponent: 0, animated: false)
         
         textField.delegate = self
+        textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(didTapDoneButton))
     }
@@ -118,12 +120,29 @@ final class ConfigurationViewController: UIViewController {
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalToSystemSpacingAfter: view.leadingAnchor, multiplier: 1),
             view.trailingAnchor.constraint(equalToSystemSpacingAfter: stack.trailingAnchor, multiplier: 1),
-            stack.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5)
+            stack.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.6)
         ])
         stackCenterYConstraint = stack.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 0)
         stackCenterYConstraint?.isActive = true
     }
     
+    // hidding keyboard only on touches outside the stack on purpose
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        dismissKeyboardWithAnimation()
+    }
+    
+    private func dismissKeyboardWithAnimation() {
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.stackCenterYConstraint?.constant = 0
+            strongSelf.view.layoutIfNeeded()
+        }
+        view.endEditing(true)
+    }
+}
+
+//MARK: - Selectors
+extension ConfigurationViewController {
     @objc func keyboardWillShow(_ notification: Notification) {
         if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
             let keyboardUpY = keyboardFrame.cgRectValue.minY
@@ -139,24 +158,24 @@ final class ConfigurationViewController: UIViewController {
     }
     
     @objc func didTapDoneButton() {
-        
+        if let text = countriesToShow {
+            if let numberOfCountries = Int(text), numberOfCountries >= 2, numberOfCountries <= 10 {
+                dismissKeyboardWithAnimation()
+                let listVC = ListViewController()
+                navigationController?.pushViewController(listVC, animated: true)
+            } else {
+                textField.layer.borderColor = UIColor.systemRed.cgColor
+                textField.text = ""
+                countriesToShow = ""
+            }
+        } else {
+            textField.layer.borderColor = UIColor.systemRed.cgColor
+        }
     }
     
-    // hidding keyboard only on touches outside the stack on purpose
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        UIView.animate(withDuration: 0.3) { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.stackCenterYConstraint?.constant = 0
-            strongSelf.view.layoutIfNeeded()
-        }
-        view.endEditing(true)
-    }
-}
-
-//MARK: - UIGestureRecognizerDelegate
-extension ConfigurationViewController: UIGestureRecognizerDelegate {
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        true
+    @objc func textFieldDidChange() {
+        textField.layer.borderColor = UIColor.separator.cgColor
+        countriesToShow = textField.text
     }
 }
 
@@ -187,7 +206,5 @@ extension ConfigurationViewController: UIPickerViewDataSource {
 
 //MARK: - UITextFieldDelegate
 extension ConfigurationViewController: UITextFieldDelegate {
-    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-        
-    }
+    
 }

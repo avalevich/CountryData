@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>QGCountriesBaseURL</key>
+	<key>GQCountriesBaseURL</key>
 	<string>https://countries.trevorblades.com/</string>
 	<key>RESTCountriesBaseURL</key>
 	<string>https://restcountries.com/v3.1/name/</string>

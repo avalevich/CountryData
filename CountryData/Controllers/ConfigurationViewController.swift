@@ -186,7 +186,7 @@ final class ConfigurationViewController: UIViewController {
                     // create ListVC
                     let vc = ListViewController(data: countriesWithInfo.sorted(by: { first, second in
                         first.name < second.name
-                    }))
+                    }), continent: self?.continents[self?.selectedContinentIndex ?? 0] ?? "")
                     alert.dismiss(animated: true) {
                         self?.navigationController?.pushViewController(vc, animated: true)
                     }

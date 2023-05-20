@@ -115,7 +115,7 @@ extension APICaller: RESTCountriesCaller {
                 }
                 completion(.success(info))
             } catch {
-                completion(.success(.nil))
+                completion(.success(nil))
             }
         }.resume()
     }

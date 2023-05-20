@@ -139,6 +139,72 @@ final class ConfigurationViewController: UIViewController {
         }
         view.endEditing(true)
     }
+    
+    private func goToListVC(_ toShow: Int) {
+        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
+        alert.view.tintColor = UIColor.black
+        let loadingIndicator = UIActivityIndicatorView(frame: CGRectMake(10, 5, 50, 50))
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.style = .medium
+        loadingIndicator.startAnimating()
+        alert.view.addSubview(loadingIndicator)
+        present(alert, animated: true)
+        
+        APICaller.shared.getCountries(for: Constants.countriesToCode[continents[selectedContinentIndex]]!) { [weak self] result in
+            switch result {
+            case .success(let countries):
+                let chosenCountries = countries.shuffled().prefix(toShow)
+                let group = DispatchGroup()
+                var countriesWithInfo = [CountryWithInfo]()
+                for country in chosenCountries {
+                    group.enter()
+                    APICaller.shared.getDetailedInfo(for: country.name) { [country] res in
+                        group.leave()
+                        switch res {
+                        case .success(let info):
+                            if let info = info {
+                                var currency = ""
+                                if info.currencies.array.first?.shortName == nil || info.currencies.array.first?.name == nil {
+                                    // will never happen
+                                    currency = "No information found!"
+                                } else {
+                                    currency = info.currencies.array.first!.shortName + " (" + info.currencies.array.first!.name + ")"
+                                }
+                                
+                                let countryWithInfo = CountryWithInfo(hasInfo: true, name: country.name + country.emoji, officialName: info.name.official, currency: currency, population: info.population, region: info.region, subregion: info.subregion, capital: info.capital)
+                                
+                                countriesWithInfo.append(countryWithInfo)
+                            } else {
+                                countriesWithInfo.append(CountryWithInfo(hasInfo: false, name: country.name + country.emoji, officialName: "", currency: "", population: 0, region: "", subregion: "", capital: []))
+                            }
+                        case .failure(let failure):
+                            self?.showError(with: failure.description)
+                        }
+                    }
+                }
+                group.notify(queue: .main) { [weak self] in
+                    // create ListVC
+                    let vc = ListViewController(data: countriesWithInfo.sorted(by: { first, second in
+                        first.name < second.name
+                    }))
+                    alert.dismiss(animated: true) {
+                        self?.navigationController?.pushViewController(vc, animated: true)
+                    }
+                }
+            case .failure(let failure):
+                self?.showError(with: failure.description)
+                alert.dismiss(animated: true)
+            }
+        }
+    }
+    
+    private func showError(with message: String) {
+        DispatchQueue.main.async { [weak self] in
+            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Close", style: .cancel))
+            self?.present(alert, animated: true)
+        }
+    }
 }
 
 //MARK: - Selectors
@@ -161,8 +227,7 @@ extension ConfigurationViewController {
         if let text = countriesToShow {
             if let numberOfCountries = Int(text), numberOfCountries >= 2, numberOfCountries <= 10 {
                 dismissKeyboardWithAnimation()
-                let listVC = ListViewController()
-                navigationController?.pushViewController(listVC, animated: true)
+                goToListVC(numberOfCountries)
             } else {
                 textField.layer.borderColor = UIColor.systemRed.cgColor
                 textField.text = ""

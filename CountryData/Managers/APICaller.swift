@@ -115,10 +115,7 @@ extension APICaller: RESTCountriesCaller {
                 }
                 completion(.success(info))
             } catch {
-                if let code = (response as? HTTPURLResponse)?.statusCode, code == 404 {
-                    completion(.success(nil))
-                }
-                completion(.failure(.decodingError))
+                completion(.success(.nil))
             }
         }.resume()
     }

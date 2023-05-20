@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class ConfigurationViewController: UIViewController {
+final class ConfigurationViewController: BaseViewController {
     
     private let pickerDescriptionLabel: UILabel = {
         let label = UILabel()
@@ -78,16 +78,7 @@ final class ConfigurationViewController: UIViewController {
         return view
     }()
     
-    private let alertWait: UIAlertController = {
-        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
-        alert.view.tintColor = UIColor.black
-        let loadingIndicator = UIActivityIndicatorView(frame: CGRectMake(10, 5, 50, 50))
-        loadingIndicator.hidesWhenStopped = true
-        loadingIndicator.style = .medium
-        loadingIndicator.startAnimating()
-        alert.view.addSubview(loadingIndicator)
-        return alert
-    }()
+    private let alertWait = SpinnerViewController(message: "Please wait...")
     
     private let continents: [String] = Constants.countriesToCode.keys.map{ $0 }
     private var stackCenterYConstraint: NSLayoutConstraint?
@@ -152,7 +143,7 @@ final class ConfigurationViewController: UIViewController {
     }
     
     private func goToListVC(_ toShow: Int) {
-        present(alertWait, animated: true)
+        present(spinner: alertWait)
         
         APICaller.shared.getCountries(for: Constants.countriesToCode[continents[selectedContinentIndex]]!) { [weak self] result in
             switch result {
@@ -163,15 +154,13 @@ final class ConfigurationViewController: UIViewController {
                         first.name < second.name
                     }), continent: self?.continents[self?.selectedContinentIndex ?? 0] ?? "")
                     
-                    self?.alertWait.dismiss(animated: true) {
-                        self?.navigationController?.pushViewController(vc, animated: true)
-                    }
+                    self?.dismiss(spinner: self?.alertWait)
+                    self?.navigationController?.pushViewController(vc, animated: true)
                 }
             case .failure(let failure):
                 DispatchQueue.main.async {
-                    self?.alertWait.dismiss(animated: true) {
-                        self?.showError(with: failure.description)
-                    }
+                    self?.dismiss(spinner: self?.alertWait)
+                    self?.showError(with: failure.description)
                 }
             }
         }

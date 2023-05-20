@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class DetailViewController: UIViewController {
+final class DetailViewController: BaseViewController {
     
     private let country: Country
     
@@ -83,16 +83,7 @@ final class DetailViewController: UIViewController {
         return stack
     }()
     
-    private let alertWait: UIAlertController = {
-        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
-        alert.view.tintColor = UIColor.black
-        let loadingIndicator = UIActivityIndicatorView(frame: CGRectMake(10, 5, 50, 50))
-        loadingIndicator.hidesWhenStopped = true
-        loadingIndicator.style = .medium
-        loadingIndicator.startAnimating()
-        alert.view.addSubview(loadingIndicator)
-        return alert
-    }()
+    private let alertWait = SpinnerViewController(message: "Please wait...")
     
     init(_ country: Country) {
         self.country = country
@@ -105,7 +96,6 @@ final class DetailViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
         
         setup()
     }
@@ -113,7 +103,7 @@ final class DetailViewController: UIViewController {
     private func setup() {
         title = country.name
         
-        view.window?.rootViewController?.present(alertWait, animated: true)
+        present(spinner: alertWait)
         
         APICaller.shared.getDetailedInfo(for: country.name) { [weak self, country] res in
             var hasInfo = false
@@ -132,21 +122,20 @@ final class DetailViewController: UIViewController {
                     
                     DispatchQueue.main.async {
                         self?.setLabels(with: countryWithInfo)
-                        self?.alertWait.dismiss(animated: true)
+                        self?.dismiss(spinner: self?.alertWait)
                     }
                     hasInfo = true
                 } else {
                     DispatchQueue.main.async {
-                        self?.alertWait.dismiss(animated: true) {
-                            self?.showError(with: "No information found about this country.")
-                        }
+                        self?.dismiss(spinner: self?.alertWait)
+                        self?.showError(with: "No information found about this country.")
+                        
                     }
                 }
             case .failure(let failure):
                 DispatchQueue.main.async {
-                    self?.alertWait.dismiss(animated: true) {
-                        self?.showError(with: failure.description)
-                    }
+                    self?.dismiss(spinner: self?.alertWait)
+                    self?.showError(with: failure.description)
                 }
             }
             DispatchQueue.main.async {

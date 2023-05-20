@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A3E7B482A197025000135F8 /* SpinnerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A3E7B472A197025000135F8 /* SpinnerViewController.swift */; };
+		3A3E7B4A2A1979A6000135F8 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A3E7B492A1979A6000135F8 /* BaseViewController.swift */; };
 		3A9FEAD82A17AA95002B0A24 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9FEAD72A17AA95002B0A24 /* AppDelegate.swift */; };
 		3A9FEADA2A17AA95002B0A24 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9FEAD92A17AA95002B0A24 /* SceneDelegate.swift */; };
 		3A9FEADC2A17AA95002B0A24 /* ConfigurationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9FEADB2A17AA95002B0A24 /* ConfigurationViewController.swift */; };
@@ -22,6 +24,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3A3E7B472A197025000135F8 /* SpinnerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerViewController.swift; sourceTree = "<group>"; };
+		3A3E7B492A1979A6000135F8 /* BaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
 		3A9FEAD42A17AA95002B0A24 /* CountryData.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CountryData.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A9FEAD72A17AA95002B0A24 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3A9FEAD92A17AA95002B0A24 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -81,6 +85,8 @@
 			isa = PBXGroup;
 			children = (
 				3A9FEAEF2A17BE2B002B0A24 /* DetailViewController.swift */,
+				3A3E7B492A1979A6000135F8 /* BaseViewController.swift */,
+				3A3E7B472A197025000135F8 /* SpinnerViewController.swift */,
 				3A9FEAED2A17BE0F002B0A24 /* ListViewController.swift */,
 				3A9FEADB2A17AA95002B0A24 /* ConfigurationViewController.swift */,
 			);
@@ -195,10 +201,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A3E7B482A197025000135F8 /* SpinnerViewController.swift in Sources */,
 				3A9FEADC2A17AA95002B0A24 /* ConfigurationViewController.swift in Sources */,
 				3A9FEAD82A17AA95002B0A24 /* AppDelegate.swift in Sources */,
 				3A9FEAFD2A1844EC002B0A24 /* CountryWithInfo.swift in Sources */,
 				3A9FEADA2A17AA95002B0A24 /* SceneDelegate.swift in Sources */,
+				3A3E7B4A2A1979A6000135F8 /* BaseViewController.swift in Sources */,
 				3A9FEAF22A17BEC8002B0A24 /* APICaller.swift in Sources */,
 				3A9FEAF42A17C2FD002B0A24 /* CountryInfo.swift in Sources */,
 				3A9FEAF62A17C328002B0A24 /* CountryList.swift in Sources */,

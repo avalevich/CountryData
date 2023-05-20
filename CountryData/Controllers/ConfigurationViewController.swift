@@ -171,11 +171,11 @@ final class ConfigurationViewController: UIViewController {
                                     currency = info.currencies.array.first!.shortName + " (" + info.currencies.array.first!.name + ")"
                                 }
                                 
-                                let countryWithInfo = CountryWithInfo(hasInfo: true, name: country.name + country.emoji, officialName: info.name.official, currency: currency, population: info.population, region: info.region, subregion: info.subregion, capital: info.capital)
+                                let countryWithInfo = CountryWithInfo(hasInfo: true, name: country.name + country.emoji, officialName: info.name.official, currency: currency, population: "\(info.population)", region: info.region, subregion: info.subregion, capital: info.capital.joined(separator: ", "))
                                 
                                 countriesWithInfo.append(countryWithInfo)
                             } else {
-                                countriesWithInfo.append(CountryWithInfo(hasInfo: false, name: country.name + country.emoji, officialName: "", currency: "", population: 0, region: "", subregion: "", capital: []))
+                                countriesWithInfo.append(CountryWithInfo(hasInfo: false, name: country.name + country.emoji, officialName: "", currency: "", population: "", region: "", subregion: "", capital: ""))
                             }
                         case .failure(let failure):
                             self?.showError(with: failure.description)
@@ -264,7 +264,6 @@ extension ConfigurationViewController: UIPickerViewDataSource {
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        textField.isUserInteractionEnabled = true
         selectedContinentIndex = row
     }
 }

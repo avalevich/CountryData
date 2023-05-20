@@ -9,7 +9,7 @@ import UIKit
 
 final class ListViewController: UIViewController {
     
-    private let countriesWithInfo: [CountryWithInfo]
+    private let countries: [Country]
     private let continent: String
     
     private let tableView: UITableView = {
@@ -19,14 +19,14 @@ final class ListViewController: UIViewController {
         return table
     }()
     
-    init(data: [CountryWithInfo], continent: String) {
-        self.countriesWithInfo = data
+    init(data: [Country], continent: String) {
+        self.countries = data
         self.continent = continent
         super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder: NSCoder) {
-        self.countriesWithInfo = []
+        self.countries = []
         self.continent = ""
         super.init(coder: coder)
     }
@@ -63,7 +63,7 @@ extension ListViewController: UITableViewDelegate {
             return UITableViewCell()
         }
         cell.accessoryType = .disclosureIndicator
-        cell.textLabel?.text = countriesWithInfo[indexPath.row].name
+        cell.textLabel?.text = countries[indexPath.row].name + countries[indexPath.row].emoji
         return cell
     }
     
@@ -73,8 +73,8 @@ extension ListViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let countryInfo = countriesWithInfo[indexPath.row]
-        let vc = DetailViewController(countryInfo)
+        let country = countries[indexPath.row]
+        let vc = DetailViewController(country)
         navigationController?.pushViewController(vc, animated: true)
     }
 }
@@ -84,6 +84,6 @@ extension ListViewController: UITableViewDataSource {
         1
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        countriesWithInfo.count
+        countries.count
     }
 }

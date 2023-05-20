@@ -9,7 +9,7 @@ import UIKit
 
 final class DetailViewController: UIViewController {
     
-    private let countryWithInfo: CountryWithInfo
+    private let country: Country
     
     private let noInfoLabel: UILabel = {
         let label = UILabel()
@@ -83,8 +83,19 @@ final class DetailViewController: UIViewController {
         return stack
     }()
     
-    init(_ countryWithInfo: CountryWithInfo) {
-        self.countryWithInfo = countryWithInfo
+    private let alertWait: UIAlertController = {
+        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
+        alert.view.tintColor = UIColor.black
+        let loadingIndicator = UIActivityIndicatorView(frame: CGRectMake(10, 5, 50, 50))
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.style = .medium
+        loadingIndicator.startAnimating()
+        alert.view.addSubview(loadingIndicator)
+        return alert
+    }()
+    
+    init(_ country: Country) {
+        self.country = country
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -97,30 +108,55 @@ final class DetailViewController: UIViewController {
         view.backgroundColor = .systemBackground
         
         setup()
-        layout()
     }
     
     private func setup() {
-        title = countryWithInfo.name
+        title = country.name
         
-        if countryWithInfo.hasInfo {
-            var text = officialNameLabel.text ?? ""
-            officialNameLabel.text = text + countryWithInfo.officialName
-            text = currencyLabel.text ?? ""
-            currencyLabel.text = text + countryWithInfo.currency
-            text = populationLabel.text ?? ""
-            populationLabel.text = text + countryWithInfo.population
-            text = subregionLabel.text ?? ""
-            subregionLabel.text = text + countryWithInfo.subregion
-            text = capitalLabel.text ?? ""
-            capitalLabel.text = text + countryWithInfo.capital
-            text = languageLabel.text ?? ""
-            languageLabel.text = text + countryWithInfo.languages
+        view.window?.rootViewController?.present(alertWait, animated: true)
+        
+        APICaller.shared.getDetailedInfo(for: country.name) { [weak self, country] res in
+            var hasInfo = false
+            switch res {
+            case .success(let info):
+                if let info = info {
+                    var currency = ""
+                    if info.currencies.array.first?.shortName == nil || info.currencies.array.first?.name == nil {
+                        // will never happen
+                        currency = "No information found!"
+                    } else {
+                        currency = info.currencies.array.first!.shortName + " (" + info.currencies.array.first!.name + ")"
+                    }
+                    
+                    let countryWithInfo = CountryWithInfo(hasInfo: true, name: country.name + country.emoji, officialName: info.name.official, currency: currency, population: "\(info.population)", subregion: info.subregion, capital: info.capital.joined(separator: ", "), languages: info.languages.values.map{ $0 }.joined(separator: ", "))
+                    
+                    DispatchQueue.main.async {
+                        self?.setLabels(with: countryWithInfo)
+                        self?.alertWait.dismiss(animated: true)
+                    }
+                    hasInfo = true
+                } else {
+                    DispatchQueue.main.async {
+                        self?.alertWait.dismiss(animated: true) {
+                            self?.showError(with: "No information found about this country.")
+                        }
+                    }
+                }
+            case .failure(let failure):
+                DispatchQueue.main.async {
+                    self?.alertWait.dismiss(animated: true) {
+                        self?.showError(with: failure.description)
+                    }
+                }
+            }
+            DispatchQueue.main.async {
+                self?.layout(withInfo: hasInfo)
+            }
         }
     }
     
-    private func layout() {
-        if !countryWithInfo.hasInfo {
+    private func layout(withInfo: Bool) {
+        if !withInfo {
             view.addSubview(noInfoLabel)
             
             NSLayoutConstraint.activate([
@@ -150,5 +186,28 @@ final class DetailViewController: UIViewController {
             stack.topAnchor.constraint(equalToSystemSpacingBelow: view.safeAreaLayoutGuide.topAnchor, multiplier: 1),
             view.safeAreaLayoutGuide.bottomAnchor.constraint(equalToSystemSpacingBelow: stack.bottomAnchor, multiplier: 1)
         ])
+    }
+    
+    private func showError(with message: String) {
+        DispatchQueue.main.async { [weak self] in
+            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Close", style: .cancel))
+            self?.present(alert, animated: true)
+        }
+    }
+    
+    private func setLabels(with countryWithInfo: CountryWithInfo) {
+        var text = officialNameLabel.text ?? ""
+        officialNameLabel.text = text + countryWithInfo.officialName
+        text = currencyLabel.text ?? ""
+        currencyLabel.text = text + countryWithInfo.currency
+        text = populationLabel.text ?? ""
+        populationLabel.text = text + countryWithInfo.population
+        text = subregionLabel.text ?? ""
+        subregionLabel.text = text + countryWithInfo.subregion
+        text = capitalLabel.text ?? ""
+        capitalLabel.text = text + countryWithInfo.capital
+        text = languageLabel.text ?? ""
+        languageLabel.text = text + countryWithInfo.languages
     }
 }

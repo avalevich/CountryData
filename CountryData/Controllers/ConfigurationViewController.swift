@@ -78,6 +78,17 @@ final class ConfigurationViewController: UIViewController {
         return view
     }()
     
+    private let alertWait: UIAlertController = {
+        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
+        alert.view.tintColor = UIColor.black
+        let loadingIndicator = UIActivityIndicatorView(frame: CGRectMake(10, 5, 50, 50))
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.style = .medium
+        loadingIndicator.startAnimating()
+        alert.view.addSubview(loadingIndicator)
+        return alert
+    }()
+    
     private let continents: [String] = Constants.countriesToCode.keys.map{ $0 }
     private var stackCenterYConstraint: NSLayoutConstraint?
     private var selectedContinentIndex = Constants.countriesToCode.keys.count / 2
@@ -141,68 +152,24 @@ final class ConfigurationViewController: UIViewController {
     }
     
     private func goToListVC(_ toShow: Int) {
-        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
-        alert.view.tintColor = UIColor.black
-        let loadingIndicator = UIActivityIndicatorView(frame: CGRectMake(10, 5, 50, 50))
-        loadingIndicator.hidesWhenStopped = true
-        loadingIndicator.style = .medium
-        loadingIndicator.startAnimating()
-        alert.view.addSubview(loadingIndicator)
-        present(alert, animated: true)
+        present(alertWait, animated: true)
         
         APICaller.shared.getCountries(for: Constants.countriesToCode[continents[selectedContinentIndex]]!) { [weak self] result in
             switch result {
             case .success(let countries):
                 let chosenCountries = countries.shuffled().prefix(toShow)
-                let group = DispatchGroup()
-                var countriesWithInfo = [CountryWithInfo]()
-                var errorMessage: String?
-                for country in chosenCountries {
-                    group.enter()
-                    APICaller.shared.getDetailedInfo(for: country.name) { [country] res in
-                        defer {
-                            group.leave()
-                        }
-                        switch res {
-                        case .success(let info):
-                            if let info = info {
-                                var currency = ""
-                                if info.currencies.array.first?.shortName == nil || info.currencies.array.first?.name == nil {
-                                    // will never happen
-                                    currency = "No information found!"
-                                } else {
-                                    currency = info.currencies.array.first!.shortName + " (" + info.currencies.array.first!.name + ")"
-                                }
-                                
-                                let countryWithInfo = CountryWithInfo(hasInfo: true, name: country.name + country.emoji, officialName: info.name.official, currency: currency, population: "\(info.population)", subregion: info.subregion, capital: info.capital.joined(separator: ", "), languages: info.languages.values.map{ $0 }.joined(separator: ", "))
-                                
-                                countriesWithInfo.append(countryWithInfo)
-                            } else {
-                                countriesWithInfo.append(CountryWithInfo(hasInfo: false, name: country.name + country.emoji, officialName: "", currency: "", population: "", subregion: "", capital: "" ,languages: ""))
-                            }
-                        case .failure(let failure):
-                            errorMessage = failure.description
-                        }
-                    }
-                }
-                group.notify(queue: .main) { [weak self] in
-                    if let errorMessage = errorMessage {
-                        alert.dismiss(animated: true) {
-                            self?.showError(with: errorMessage)
-                        }
-                    }else {
-                        // create ListVC
-                        let vc = ListViewController(data: countriesWithInfo.sorted(by: { first, second in
-                            first.name < second.name
-                        }), continent: self?.continents[self?.selectedContinentIndex ?? 0] ?? "")
-                        alert.dismiss(animated: true) {
-                            self?.navigationController?.pushViewController(vc, animated: true)
-                        }
+                DispatchQueue.main.async {
+                    let vc = ListViewController(data: chosenCountries.sorted(by: { first, second in
+                        first.name < second.name
+                    }), continent: self?.continents[self?.selectedContinentIndex ?? 0] ?? "")
+                    
+                    self?.alertWait.dismiss(animated: true) {
+                        self?.navigationController?.pushViewController(vc, animated: true)
                     }
                 }
             case .failure(let failure):
                 DispatchQueue.main.async {
-                    alert.dismiss(animated: true) {
+                    self?.alertWait.dismiss(animated: true) {
                         self?.showError(with: failure.description)
                     }
                 }

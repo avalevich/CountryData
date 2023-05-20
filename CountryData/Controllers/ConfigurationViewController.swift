@@ -156,10 +156,13 @@ final class ConfigurationViewController: UIViewController {
                 let chosenCountries = countries.shuffled().prefix(toShow)
                 let group = DispatchGroup()
                 var countriesWithInfo = [CountryWithInfo]()
+                var errorMessage: String?
                 for country in chosenCountries {
                     group.enter()
                     APICaller.shared.getDetailedInfo(for: country.name) { [country] res in
-                        group.leave()
+                        defer {
+                            group.leave()
+                        }
                         switch res {
                         case .success(let info):
                             if let info = info {
@@ -171,29 +174,38 @@ final class ConfigurationViewController: UIViewController {
                                     currency = info.currencies.array.first!.shortName + " (" + info.currencies.array.first!.name + ")"
                                 }
                                 
-                                let countryWithInfo = CountryWithInfo(hasInfo: true, name: country.name + country.emoji, officialName: info.name.official, currency: currency, population: "\(info.population)", region: info.region, subregion: info.subregion, capital: info.capital.joined(separator: ", "))
+                                let countryWithInfo = CountryWithInfo(hasInfo: true, name: country.name + country.emoji, officialName: info.name.official, currency: currency, population: "\(info.population)", subregion: info.subregion, capital: info.capital.joined(separator: ", "), languages: info.languages.values.map{ $0 }.joined(separator: ", "))
                                 
                                 countriesWithInfo.append(countryWithInfo)
                             } else {
-                                countriesWithInfo.append(CountryWithInfo(hasInfo: false, name: country.name + country.emoji, officialName: "", currency: "", population: "", region: "", subregion: "", capital: ""))
+                                countriesWithInfo.append(CountryWithInfo(hasInfo: false, name: country.name + country.emoji, officialName: "", currency: "", population: "", subregion: "", capital: "" ,languages: ""))
                             }
                         case .failure(let failure):
-                            self?.showError(with: failure.description)
+                            errorMessage = failure.description
                         }
                     }
                 }
                 group.notify(queue: .main) { [weak self] in
-                    // create ListVC
-                    let vc = ListViewController(data: countriesWithInfo.sorted(by: { first, second in
-                        first.name < second.name
-                    }), continent: self?.continents[self?.selectedContinentIndex ?? 0] ?? "")
-                    alert.dismiss(animated: true) {
-                        self?.navigationController?.pushViewController(vc, animated: true)
+                    if let errorMessage = errorMessage {
+                        alert.dismiss(animated: true) {
+                            self?.showError(with: errorMessage)
+                        }
+                    }else {
+                        // create ListVC
+                        let vc = ListViewController(data: countriesWithInfo.sorted(by: { first, second in
+                            first.name < second.name
+                        }), continent: self?.continents[self?.selectedContinentIndex ?? 0] ?? "")
+                        alert.dismiss(animated: true) {
+                            self?.navigationController?.pushViewController(vc, animated: true)
+                        }
                     }
                 }
             case .failure(let failure):
-                self?.showError(with: failure.description)
-                alert.dismiss(animated: true)
+                DispatchQueue.main.async {
+                    alert.dismiss(animated: true) {
+                        self?.showError(with: failure.description)
+                    }
+                }
             }
         }
     }

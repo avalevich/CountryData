@@ -69,6 +69,7 @@ extension APICaller: GraphQLCountriesCaller {
             "query" : query
         ])
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 5
         
         URLSession.shared.dataTask(with: request) { data, _, error in
             guard let data = data, error == nil else {
@@ -102,7 +103,9 @@ extension APICaller: RESTCountriesCaller {
             completion(.failure(.badURL))
             return
         }
-        URLSession.shared.dataTask(with: URLRequest(url: url)) { data, response, error in
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 2
+        URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 completion(.failure(.serverError))
                 return

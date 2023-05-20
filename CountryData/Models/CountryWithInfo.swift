@@ -13,7 +13,7 @@ struct CountryWithInfo {
     let officialName: String
     let currency: String
     let population: String
-    let region: String
     let subregion: String
     let capital: String
+    let languages: String
 }

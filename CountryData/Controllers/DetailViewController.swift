@@ -47,15 +47,6 @@ final class DetailViewController: UIViewController {
         return label
     }()
     
-    private let regionLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Region: "
-        label.font = .systemFont(ofSize: 18)
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
     private let subregionLabel: UILabel = {
         let label = UILabel()
         label.text = "Subregion: "
@@ -68,6 +59,15 @@ final class DetailViewController: UIViewController {
     private let capitalLabel: UILabel = {
         let label = UILabel()
         label.text = "Capital(s): "
+        label.font = .systemFont(ofSize: 18)
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let languageLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Language(s): "
         label.font = .systemFont(ofSize: 18)
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -110,12 +110,12 @@ final class DetailViewController: UIViewController {
             currencyLabel.text = text + countryWithInfo.currency
             text = populationLabel.text ?? ""
             populationLabel.text = text + countryWithInfo.population
-            text = regionLabel.text ?? ""
-            regionLabel.text = text + countryWithInfo.region
             text = subregionLabel.text ?? ""
             subregionLabel.text = text + countryWithInfo.subregion
             text = capitalLabel.text ?? ""
             capitalLabel.text = text + countryWithInfo.capital
+            text = languageLabel.text ?? ""
+            languageLabel.text = text + countryWithInfo.languages
         }
     }
     
@@ -132,7 +132,7 @@ final class DetailViewController: UIViewController {
             return
         }
         
-        let views: [UIView] = [officialNameLabel, currencyLabel, populationLabel, regionLabel, subregionLabel, capitalLabel]
+        let views: [UIView] = [officialNameLabel, currencyLabel, populationLabel, subregionLabel, capitalLabel, languageLabel]
         for el in views {
             let separator = UIView()
             separator.backgroundColor = .separator

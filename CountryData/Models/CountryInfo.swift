@@ -56,8 +56,8 @@ struct CountryInfo: Codable {
     let name: Name
     let capital: [String]
     let population: Int
-    let region: String
     let subregion: String
     let currencies: Currency
+    let languages: [String: String]
     
 }

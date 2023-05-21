@@ -10,6 +10,8 @@ import UIKit
 final class DetailViewController: BaseViewController {
     
     private let country: Country
+    private let alertWait = SpinnerViewController(message: "Please wait...")
+    private var countryInfo: CountryWithInfo?
     
     private let noInfoLabel: UILabel = {
         let label = UILabel()
@@ -20,70 +22,15 @@ final class DetailViewController: BaseViewController {
         return label
     }()
     
-    private let officialNameLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Official Name: "
-        label.font = .systemFont(ofSize: 18)
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let currencyLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Currency: "
-        label.font = .systemFont(ofSize: 18)
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let populationLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Population: "
-        label.font = .systemFont(ofSize: 18)
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let subregionLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Subregion: "
-        label.font = .systemFont(ofSize: 18)
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let capitalLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Capital(s): "
-        label.font = .systemFont(ofSize: 18)
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let languageLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Language(s): "
-        label.font = .systemFont(ofSize: 18)
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
     private let stack: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.spacing = 6
+        stack.spacing = 20
         stack.distribution = .equalSpacing
+        stack.alignment = .fill
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
-    
-    private let alertWait = SpinnerViewController(message: "Please wait...")
     
     init(_ country: Country) {
         self.country = country
@@ -96,7 +43,6 @@ final class DetailViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setup()
     }
     
@@ -121,7 +67,7 @@ final class DetailViewController: BaseViewController {
                     let countryWithInfo = CountryWithInfo(hasInfo: true, name: country.name + country.emoji, officialName: info.name.official, currency: currency, population: "\(info.population)", subregion: info.subregion, capital: info.capital.joined(separator: ", "), languages: info.languages.values.map{ $0 }.joined(separator: ", "))
                     
                     DispatchQueue.main.async {
-                        self?.setLabels(with: countryWithInfo)
+                        self?.countryInfo = countryWithInfo
                         self?.dismiss(spinner: self?.alertWait)
                     }
                     hasInfo = true
@@ -144,8 +90,42 @@ final class DetailViewController: BaseViewController {
         }
     }
     
+    private func createSeparator() -> UIView {
+        let separator = UIView()
+        separator.backgroundColor = .separator
+        separator.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        return separator
+    }
+    
+    private func createRow(title: String, value: String) -> UIView {
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.textColor = .systemBlue
+        titleLabel.font = .systemFont(ofSize: 18)
+        titleLabel.numberOfLines = 0
+        titleLabel.textAlignment = .left
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let valueLabel = UILabel()
+        valueLabel.text = value
+        valueLabel.font = .systemFont(ofSize: 18)
+        valueLabel.numberOfLines = 0
+        valueLabel.textAlignment = .right
+        valueLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        
+        stack.addArrangedSubview(titleLabel)
+        stack.addArrangedSubview(valueLabel)
+        
+        return stack
+    }
+    
     private func layout(withInfo: Bool) {
-        if !withInfo {
+        guard let info = countryInfo, withInfo else {
             view.addSubview(noInfoLabel)
             
             NSLayoutConstraint.activate([
@@ -157,23 +137,27 @@ final class DetailViewController: BaseViewController {
             return
         }
         
-        let views: [UIView] = [officialNameLabel, currencyLabel, populationLabel, subregionLabel, capitalLabel, languageLabel]
+        let views: [UIView] = [
+            createRow(title: "Official Name:", value: info.officialName),
+            createRow(title: "Currency:", value: info.currency),
+            createRow(title: "Population:", value: info.population),
+            createRow(title: "Subregion:", value: info.subregion),
+            createRow(title: "Capital(s):", value: info.capital),
+            createRow(title: "Language(s):", value: info.languages)
+        ]
+        
+        stack.addArrangedSubview(createSeparator())
         for el in views {
-            let separator = UIView()
-            separator.backgroundColor = .separator
-            separator.heightAnchor.constraint(equalToConstant: 1).isActive = true
-            separator.translatesAutoresizingMaskIntoConstraints = false
-            stack.addArrangedSubview(separator)
             stack.addArrangedSubview(el)
+            stack.addArrangedSubview(createSeparator())
         }
         
         view.addSubview(stack)
         
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalToSystemSpacingAfter: view.leadingAnchor, multiplier: 1),
-            view.trailingAnchor.constraint(equalToSystemSpacingAfter: stack.trailingAnchor, multiplier: 1),
-            stack.topAnchor.constraint(equalToSystemSpacingBelow: view.safeAreaLayoutGuide.topAnchor, multiplier: 1),
-            view.safeAreaLayoutGuide.bottomAnchor.constraint(equalToSystemSpacingBelow: stack.bottomAnchor, multiplier: 1)
+            stack.topAnchor.constraint(equalToSystemSpacingBelow: view.safeAreaLayoutGuide.topAnchor, multiplier: 2),
+            stack.leadingAnchor.constraint(equalToSystemSpacingAfter: view.safeAreaLayoutGuide.leadingAnchor, multiplier: 2),
+            view.safeAreaLayoutGuide.trailingAnchor.constraint(equalToSystemSpacingAfter: stack.trailingAnchor, multiplier: 2)
         ])
     }
     
@@ -183,20 +167,5 @@ final class DetailViewController: BaseViewController {
             alert.addAction(UIAlertAction(title: "Close", style: .cancel))
             self?.present(alert, animated: true)
         }
-    }
-    
-    private func setLabels(with countryWithInfo: CountryWithInfo) {
-        var text = officialNameLabel.text ?? ""
-        officialNameLabel.text = text + countryWithInfo.officialName
-        text = currencyLabel.text ?? ""
-        currencyLabel.text = text + countryWithInfo.currency
-        text = populationLabel.text ?? ""
-        populationLabel.text = text + countryWithInfo.population
-        text = subregionLabel.text ?? ""
-        subregionLabel.text = text + countryWithInfo.subregion
-        text = capitalLabel.text ?? ""
-        capitalLabel.text = text + countryWithInfo.capital
-        text = languageLabel.text ?? ""
-        languageLabel.text = text + countryWithInfo.languages
     }
 }

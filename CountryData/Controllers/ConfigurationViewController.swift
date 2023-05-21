@@ -35,7 +35,7 @@ final class ConfigurationViewController: BaseViewController {
     
     private let textField: UITextField = {
         let field = UITextField()
-        field.placeholder = "Enter number from 2 to 10"
+        field.placeholder = "Enter a number from 2 to 10"
         field.font = .systemFont(ofSize: 14)
         field.textAlignment = .center
         field.translatesAutoresizingMaskIntoConstraints = false
@@ -200,9 +200,11 @@ extension ConfigurationViewController {
                 textField.layer.borderColor = UIColor.systemRed.cgColor
                 textField.text = ""
                 countriesToShow = ""
+                showError(with: "You can use only numbers. No letters or special symbols allowed. Enter a number from 2 to 10.")
             }
         } else {
             textField.layer.borderColor = UIColor.systemRed.cgColor
+            showError(with: "There is no number provided. Enter a number from 2 to 10.")
         }
     }
     
